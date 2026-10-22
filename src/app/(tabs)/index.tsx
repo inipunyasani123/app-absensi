@@ -104,13 +104,12 @@ function Isi() {
       </Kartu>
 
       {/* Aksi utama */}
-      {k ? (
-        <Aksi k={k} />
+      {!k ? (
+        <AksiTombol label="Absen" ikon="masuk" keterangan="Menyiapkan kartu absenmu…" />
+      ) : k.langkah === 'masuk' || k.langkah === 'pulang' ? (
+        <AksiTombol {...propsAksi(k, ctx.menit)} />
       ) : (
-        <View style={{ gap: 6 }}>
-          <Tombol besar varian="stempel" ikon="masuk" label="Absen" disabled />
-          <Teks v="kecil" warna={W.tinta2} style={{ textAlign: 'center' }}>Menyiapkan kartu absenmu…</Teks>
-        </View>
+        <Aksi k={k} />
       )}
 
       {/* Lokasi */}
@@ -202,30 +201,33 @@ function Isi() {
   );
 }
 
+function propsAksi(k: ReturnType<typeof keadaanHariIni>, menit: number) {
+  const masuk = k.langkah === 'masuk';
+  const awal = masuk && menit < k.buka;
+  return {
+    ikon: (masuk ? 'masuk' : 'pulang') as 'masuk' | 'pulang',
+    label: masuk ? 'Absen masuk' : 'Absen pulang',
+    onPress: () => router.push(`/absen?jenis=${k.langkah}`),
+    keterangan: masuk
+      ? awal
+        ? `Absen biasanya dibuka ${jam(k.buka)}. Di demo kamu tetap bisa mencobanya sekarang.`
+        : 'Tanpa swafoto: cukup lokasi dalam radius dan catatan tugas pembuka.'
+      : `Sudah bekerja ${durasi(menit - (k.rec?.masuk?.menit ?? menit))} sejak masuk.`,
+  };
+}
+
+// Satu jenis komponen untuk keadaan memuat & siap, supaya simpul DOM-nya dipakai ulang (LCP tidak tergeser).
+function AksiTombol({ label, ikon, keterangan, onPress }: { label: string; ikon: 'masuk' | 'pulang'; keterangan: string; onPress?: () => void }) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Tombol besar varian="stempel" ikon={ikon} label={label} onPress={onPress} disabled={!onPress} />
+      <Teks v="kecil" warna={W.tinta2} style={{ textAlign: 'center' }}>{keterangan}</Teks>
+    </View>
+  );
+}
+
 function Aksi({ k }: { k: ReturnType<typeof keadaanHariIni> }) {
   const ctx = useGilir();
-  if (k.langkah === 'masuk' || k.langkah === 'pulang') {
-    const masuk = k.langkah === 'masuk';
-    const awal = masuk && ctx.menit < k.buka;
-    return (
-      <View style={{ gap: 6 }}>
-        <Tombol
-          besar
-          varian="stempel"
-          ikon={masuk ? 'masuk' : 'pulang'}
-          label={masuk ? 'Absen masuk' : 'Absen pulang'}
-          onPress={() => router.push(`/absen?jenis=${k.langkah}`)}
-        />
-        <Teks v="kecil" warna={W.tinta2} style={{ textAlign: 'center' }}>
-          {masuk
-            ? awal
-              ? `Absen biasanya dibuka ${jam(k.buka)}. Di demo kamu tetap bisa mencobanya sekarang.`
-              : 'Tanpa swafoto: cukup lokasi dalam radius dan catatan tugas pembuka.'
-            : `Sudah bekerja ${durasi(ctx.menit - (k.rec?.masuk?.menit ?? ctx.menit))} sejak masuk.`}
-        </Teks>
-      </View>
-    );
-  }
   if (k.langkah === 'selesai') {
     const lama = (k.rec?.pulang?.menit ?? 0) - (k.rec?.masuk?.menit ?? 0);
     return (
