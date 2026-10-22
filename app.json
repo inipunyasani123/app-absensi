@@ -1,17 +1,23 @@
 {
   "expo": {
-    "name": "absensi",
-    "slug": "absensi",
+    "name": "Gilir",
+    "slug": "gilir-absensi",
+    "scheme": "gilir",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#EEE5D0",
+    "primaryColor": "#1E1A15",
+    "description": "Demo aplikasi absensi & HR karyawan buatan PintuWeb. Usaha dan datanya rekaan.",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "id.pintuweb.demo.gilir"
     },
     "android": {
+      "package": "id.pintuweb.demo.gilir",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#EEE5D0",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -19,7 +25,24 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "output": "static",
+      "favicon": "./assets/favicon.png",
+      "name": "Gilir: Absensi & HR Karyawan",
+      "shortName": "Gilir",
+      "lang": "id",
+      "themeColor": "#1E1A15",
+      "backgroundColor": "#EEE5D0"
+    },
+    "plugins": [
+      ["expo-router", { "origin": "https://app-absensi.pintuweb.id" }],
+      "expo-status-bar",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Gilir memakai lokasimu untuk memastikan kamu berada di radius gerai saat absen."
+        }
+      ]
+    ]
   }
 }
