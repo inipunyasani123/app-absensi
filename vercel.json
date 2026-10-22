@@ -4,12 +4,12 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/(tabs)",
+      "source": "/\\(tabs\\)",
       "destination": "/",
       "permanent": true
     },
     {
-      "source": "/(tabs)/:path*",
+      "source": "/\\(tabs\\)/:path*",
       "destination": "/:path*",
       "permanent": true
     },
