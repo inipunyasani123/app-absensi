@@ -1,0 +1,22 @@
+/** Judul tab per rute (web), disalin dari <title> HTML statis hasil build. Perbarui bila judul metadata rute berubah. */
+export const JUDUL: Record<string, string> = {
+  "/": "Gilir: Demo Aplikasi Absensi & HR Karyawan | PintuWeb",
+  "/404": "Halaman Tidak Ditemukan · Gilir",
+  "/_sitemap": "Halaman Tidak Ditemukan · Gilir",
+  "/absen": "Konfirmasi Absen Masuk & Pulang · Gilir",
+  "/atasan": "Mode Atasan: Persetujuan Tim · Gilir",
+  "/gaji": "Slip Gaji Contoh · Gilir",
+  "/jadwal": "Jadwal Shift Mingguan · Gilir",
+  "/pengajuan": "Cuti, Izin, Sakit & Lembur · Gilir",
+  "/pengajuan/baru": "Ajukan Cuti, Izin, Lembur, atau Tukar Shift · Gilir",
+  "/pengumuman": "Pengumuman HR untuk Karyawan · Gilir",
+  "/pengumuman/celemek-baru": "Celemek baru bisa diambil mulai Senin · Gilir",
+  "/pengumuman/cuti-akhir-tahun": "Cuti akhir tahun diatur bergiliran · Gilir",
+  "/pengumuman/makan-bersama": "Makan bersama akhir bulan · Gilir",
+  "/pengumuman/pelatihan-keamanan-pangan": "Pelatihan keamanan pangan di Dapur Pusat · Gilir",
+  "/pengumuman/slip-gaji-terbit": "Slip gaji bulan lalu sudah terbit · Gilir",
+  "/pengumuman/stok-opname": "Stok opname akhir bulan · Gilir",
+  "/pengumuman/toleransi-telat": "Aturan toleransi telat: 5 menit · Gilir",
+  "/profil": "Profil & Kartu Karyawan · Gilir",
+  "/rekap": "Rekap Kehadiran Bulanan · Gilir",
+};
