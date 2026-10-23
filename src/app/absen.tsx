@@ -44,6 +44,9 @@ export default function Absen() {
   const ctx = useGilir();
   return (
     <Layar kembali sub="Konfirmasi" judul={!ctx.siap ? 'Absen' : jenis === 'masuk' ? 'Absen masuk' : 'Absen pulang'}>
+      <Teks v="isi" warna={W.tinta2}>
+        Tanpa swafoto: pastikan kamu di dalam radius gerai (atau pakai simulasi), centang tugas yang sudah dikerjakan, lalu tekan dan tahan tombol stempel.
+      </Teks>
       {ctx.siap ? <Form jenis={jenis} /> : <Kartu nada="jelaga" style={{ gap: 12, minHeight: 180 }}><Kerangka gelap /><Kerangka gelap tinggi={70} /></Kartu>}
     </Layar>
   );

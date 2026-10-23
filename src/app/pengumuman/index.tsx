@@ -14,6 +14,9 @@ export default function Pengumuman() {
   const ctx = useGilir();
   return (
     <Layar kembali sub="Dari bagian HR" judul="Pengumuman">
+      <Teks v="isi" warna={W.tinta2}>
+        Kabar dari bagian HR Roti Lintang Pagi untuk semua gerai: pelatihan, aturan kerja, jadwal libur, dan gaji. Kabar wajib selalu di atas.
+      </Teks>
       {ctx.siap ? <Daftar /> : <Kerangka tinggi={300} lebar="100%" />}
     </Layar>
   );

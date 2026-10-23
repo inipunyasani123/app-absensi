@@ -32,6 +32,9 @@ export default function Baru() {
   const { siap } = useGilir();
   return (
     <Layar kembali="/pengajuan" sub="Pengajuan baru" judul="Isi formulir">
+      <Teks v="isi" warna={W.tinta2}>
+        Pilih jenis dan tanggal. Hari libur shift tidak memotong cuti, dan pengajuanmu langsung masuk antrean kepala gerai untuk disetujui.
+      </Teks>
       {siap ? <Form /> : <Kerangka tinggi={300} lebar="100%" />}
     </Layar>
   );

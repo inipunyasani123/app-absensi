@@ -6,7 +6,7 @@ import { Ikon } from '@/components/Ikon';
 import { CABANG, ORANG, PERUSAHAAN, SAYA_ID } from '@/lib/data';
 import { Baris, UPAH, hitungSlip } from '@/lib/gaji';
 import { meta } from '@/lib/meta';
-import { rekapBulan } from '@/lib/riwayat';
+import { Rekap, rekapBulan } from '@/lib/riwayat';
 import { useGilir } from '@/lib/store';
 import { BULAN_PENDEK, NAMA_BULAN, geserBulan, jumlahHari, rupiah } from '@/lib/waktu';
 import { H, W } from '@/theme';
@@ -17,11 +17,16 @@ export function generateMetadata() {
 
 const saya = ORANG[SAYA_ID];
 
+const REKAP_KOSONG: Rekap = {
+  y: 2026, m: 1, hari: [], hariKerja: 0, hadir: 0, telat: 0, telatMenit: 0, izin: 0, sakit: 0, cuti: 0, alpa: 0,
+  lemburMenit: 0, lemburMenunggu: 0, rataSelisihMasuk: null, persen: null,
+};
+
 export default function Gaji() {
   const { siap } = useGilir();
   return (
     <Layar tab sub="Slip gaji karyawan" judul="Gaji">
-      {siap ? <Isi /> : <><Kerangka tinggi={48} lebar="100%" /><Kerangka tinggi={420} lebar="100%" /></>}
+      <Isi />
     </Layar>
   );
 }
@@ -31,29 +36,33 @@ function Isi() {
   const [geser, setGeser] = useState<'1' | '2' | '3'>('1');
   const bln = geserBulan(ctx.hariIni.y, ctx.hariIni.m, -Number(geser));
   const bayar = geserBulan(bln.y, bln.m, 1);
-  const r = useMemo(() => rekapBulan(SAYA_ID, bln.y, bln.m, ctx), [bln.y, bln.m, ctx]);
+  // Sebelum data siap: struktur slip yang sama dengan nilai "Rp–" (tanpa angka yang lalu melompat).
+  const siap = ctx.siap;
+  const r = useMemo(() => (siap ? rekapBulan(SAYA_ID, bln.y, bln.m, ctx) : REKAP_KOSONG), [bln.y, bln.m, ctx, siap]);
   const slip = hitungSlip(r);
+  const uang = (n: number) => (siap ? rupiah(n) : 'Rp–');
+  const bulanNama = siap ? `${NAMA_BULAN[bln.m - 1]} ${bln.y}` : 'bulan lalu';
   const pilihan = (['1', '2', '3'] as const).map((g) => {
     const b = geserBulan(ctx.hariIni.y, ctx.hariIni.m, -Number(g));
-    return { nilai: g, label: `${BULAN_PENDEK[b.m - 1]} ${String(b.y).slice(2)}` };
+    return { nilai: g, label: siap ? `${BULAN_PENDEK[b.m - 1]} ${String(b.y).slice(2)}` : ['Bulan lalu', '2 bln lalu', '3 bln lalu'][Number(g) - 1] };
   });
 
   return (
     <>
       <Segmen label="Pilih periode gaji" nilai={geser} ubah={setGeser} pilihan={pilihan} />
 
-      <View style={st.hero} accessible accessibilityLabel={`Gaji diterima ${NAMA_BULAN[bln.m - 1]} ${bln.y}: ${rupiah(slip.bersih)}`}>
-        <Teks v="label" warna={W.diJelaga2}>Diterima · {NAMA_BULAN[bln.m - 1]} {bln.y}</Teks>
+      <View style={st.hero} accessible accessibilityLabel={siap ? `Gaji diterima ${bulanNama}: ${rupiah(slip.bersih)}` : 'Gaji diterima sedang dihitung'}>
+        <Teks v="label" warna={W.diJelaga2}>Diterima · {bulanNama}</Teks>
         <Teks v="raksasa" warna={W.diJelaga} style={{ fontSize: 50, lineHeight: 54 }} numberOfLines={1} adjustsFontSizeToFit>
-          {rupiah(slip.bersih)}
+          {uang(slip.bersih)}
         </Teks>
         <Teks v="monoKecil" warna={W.diJelaga2}>
-          Ditransfer 1 {NAMA_BULAN[bayar.m - 1]} {bayar.y} ke rekening gaji •••• 4721
+          Ditransfer {siap ? `1 ${NAMA_BULAN[bayar.m - 1]} ${bayar.y}` : 'tiap tanggal 1'} ke rekening gaji •••• 4721
         </Teks>
         <View style={st.heroBaris}>
-          <Mini label="Hadir" nilai={`${slip.hadir} hr`} />
-          <Mini label="Lembur" nilai={`${String(slip.lemburJam).replace('.', ',')} jam`} />
-          <Mini label="Telat" nilai={`${r.telat}×`} />
+          <Mini label="Hadir" nilai={siap ? `${slip.hadir} hr` : '– hr'} />
+          <Mini label="Lembur" nilai={siap ? `${String(slip.lemburJam).replace('.', ',')} jam` : '– jam'} />
+          <Mini label="Telat" nilai={siap ? `${r.telat}×` : '–×'} />
         </View>
       </View>
 
@@ -61,7 +70,7 @@ function Isi() {
         <Gerigi />
         <View style={st.strukIsi}>
           <Text style={st.strukJudul}>{PERUSAHAAN.nama.toUpperCase()}</Text>
-          <Text style={st.strukSub}>SLIP GAJI · PERIODE 1–{jumlahHari(bln.y, bln.m)} {NAMA_BULAN[bln.m - 1].toUpperCase()} {bln.y}</Text>
+          <Text style={st.strukSub}>SLIP GAJI · PERIODE {siap ? `1–${jumlahHari(bln.y, bln.m)} ${NAMA_BULAN[bln.m - 1].toUpperCase()} ${bln.y}` : 'BULAN LALU'}</Text>
           <View style={st.garisPutus} />
           <Info k="Nama" v={saya.nama} />
           <Info k="NIK" v={saya.nik} />
@@ -69,14 +78,14 @@ function Isi() {
           <Info k="Cabang" v={CABANG[saya.cabang].nama} />
           <Info k="Status PTKP" v="TK/0" />
           <Teks v="judul" tingkat={2} style={st.bagian}>Pendapatan</Teks>
-          {slip.pendapatan.map((b) => <BarisUang key={b.label} b={b} />)}
-          <Total label="Total pendapatan" nilai={slip.bruto} />
+          {slip.pendapatan.map((b) => <BarisUang key={b.label} b={b} kosong={!siap} />)}
+          <Total label="Total pendapatan" nilai={slip.bruto} kosong={!siap} />
           <Teks v="judul" tingkat={2} style={st.bagian}>Potongan</Teks>
-          {slip.potongan.map((b) => <BarisUang key={b.label} b={b} minus />)}
-          <Total label="Total potongan" nilai={-slip.totalPotongan} />
+          {slip.potongan.map((b) => <BarisUang key={b.label} b={b} minus kosong={!siap} />)}
+          <Total label="Total potongan" nilai={-slip.totalPotongan} kosong={!siap} />
           <View style={st.diterima}>
             <Text style={st.diterimaLabel}>DITERIMA</Text>
-            <Text style={st.diterimaNilai}>{rupiah(slip.bersih)}</Text>
+            <Text style={st.diterimaNilai}>{uang(slip.bersih)}</Text>
           </View>
         </View>
         <Gerigi bawah />
@@ -95,7 +104,7 @@ function Isi() {
         </Teks>
         <Tautan href="/rekap" style={st.tautanRekap}>
           <Teks v="subjudul" style={{ flex: 1, fontSize: 15 }}>
-            Lihat {String(slip.lemburJam).replace('.', ',')} jam lembur & {slip.hadir} hari hadir di Rekap
+            {siap ? `Lihat ${String(slip.lemburJam).replace('.', ',')} jam lembur & ${slip.hadir} hari hadir di Rekap` : 'Lihat lembur & hari hadir di Rekap'}
           </Teks>
           <Ikon nama="kanan" />
         </Tautan>
@@ -125,23 +134,23 @@ function Info({ k, v }: { k: string; v: string }) {
   );
 }
 
-function BarisUang({ b, minus }: { b: Baris; minus?: boolean }) {
+function BarisUang({ b, minus, kosong }: { b: Baris; minus?: boolean; kosong?: boolean }) {
   return (
     <View style={st.baris}>
       <View style={{ flex: 1 }}>
         <Text style={st.barisLabel}>{b.label}</Text>
-        {b.catatan ? <Text style={st.barisCatatan}>{b.catatan}</Text> : null}
+        {b.catatan ? <Text style={st.barisCatatan}>{kosong ? 'menghitung…' : b.catatan}</Text> : null}
       </View>
-      <Text style={st.barisNilai}>{minus && b.nilai ? rupiah(-b.nilai) : rupiah(b.nilai)}</Text>
+      <Text style={st.barisNilai}>{kosong ? 'Rp–' : minus && b.nilai ? rupiah(-b.nilai) : rupiah(b.nilai)}</Text>
     </View>
   );
 }
 
-function Total({ label, nilai }: { label: string; nilai: number }) {
+function Total({ label, nilai, kosong }: { label: string; nilai: number; kosong?: boolean }) {
   return (
     <View style={[st.baris, st.total]}>
       <Text style={[st.barisLabel, { ...H.isiTebal }]}>{label}</Text>
-      <Text style={[st.barisNilai, { ...H.monoTebal }]}>{rupiah(nilai)}</Text>
+      <Text style={[st.barisNilai, { ...H.monoTebal }]}>{kosong ? 'Rp–' : rupiah(nilai)}</Text>
     </View>
   );
 }

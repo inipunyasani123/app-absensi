@@ -69,6 +69,13 @@ export default function Atasan() {
         ) : null
       }
     >
+      <View style={st.banner}>
+        <Avatar rupa={bayu.rupa} ukuran={52} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Teks v="subjudul" warna={W.ungu}>Kamu melihat sebagai {bayu.panggilan}</Teks>
+          <Teks v="isi" warna={W.ungu}>Keputusan di sini mengubah status pengajuan di akun {ORANG[SAYA_ID].panggilan}. Ada 5 detik untuk mengurungkan.</Teks>
+        </View>
+      </View>
       {siap ? <Isi tunda={tunda} putus={ajukanKeputusan} /> : <Kerangka tinggi={300} lebar="100%" />}
     </Layar>
   );
@@ -87,14 +94,6 @@ function Isi({ tunda, putus }: { tunda: Tunda | null; putus: (t: Tunda) => void 
 
   return (
     <>
-      <View style={st.banner}>
-        <Avatar rupa={bayu.rupa} ukuran={52} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Teks v="subjudul" warna={W.ungu}>Kamu melihat sebagai {bayu.panggilan}</Teks>
-          <Teks v="kecil" warna={W.ungu}>Keputusan di sini mengubah status pengajuan di akun {ORANG[SAYA_ID].panggilan}. Ada 5 detik untuk mengurungkan.</Teks>
-        </View>
-      </View>
-
       <View style={st.bento}>
         <View style={[st.ubin, { backgroundColor: W.jelaga, flex: 1.3 }]}>
           <Text style={[st.ubinLabel, { color: W.diJelaga2 }]}>Hadir hari ini</Text>

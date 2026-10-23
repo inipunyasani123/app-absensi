@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Chip, Kartu, Kerangka, Layar, Tautan, Teks } from '@/components/ui';
 import { PENGUMUMAN_META, daftarPengumuman } from '@/lib/data';
-import { FOTO_ROTI } from '@/lib/foto';
+import { FotoRoti } from '@/components/FotoRoti';
 import { meta } from '@/lib/meta';
 import { useLocalSearchParams } from '@/lib/nav';
 import { useGilir } from '@/lib/store';
@@ -23,6 +23,12 @@ export default function Detail() {
   const m = PENGUMUMAN_META[id ?? ''];
   return (
     <Layar kembali="/pengumuman" kecil sub="Pengumuman HR" judul={m ? m[0] : 'Pengumuman tidak ditemukan'}>
+      {m && <Teks v="isi" style={{ fontSize: 16, lineHeight: 24 }}>{m[1]}</Teks>}
+      {id === 'pelatihan-keamanan-pangan' && (
+        <View style={st.foto}>
+          <FotoRoti />
+        </View>
+      )}
       <Isi id={id ?? ''} />
     </Layar>
   );
@@ -54,22 +60,15 @@ function Isi({ id }: { id: string }) {
         <Teks v="monoKecil" warna={W.tinta2}>{tanggalPanjang(p.tanggal)}</Teks>
       </View>
       {p.id === 'slip-gaji-terbit' && <Teks v="subjudul">Slip gaji {lalu} sudah terbit</Teks>}
-      {p.foto && (
-        <View style={st.foto}>
-          <Image
-            source={FOTO_ROTI}
-            style={{ width: '100%', aspectRatio: 3 / 2 }}
-            accessibilityLabel="Rak kayu berisi roti tawar yang baru dipanggang"
-            resizeMode="cover"
-          />
-        </View>
-      )}
       <Kartu style={{ gap: 10 }}>
         {p.isi.map((par, i) => (
           <Teks key={i}>{par}</Teks>
         ))}
         <Teks v="kecil" warna={W.tinta2}>— Bagian HR {`Roti Lintang Pagi`}</Teks>
       </Kartu>
+      <Tautan href="/pengumuman" style={st.semua}>
+        <Teks v="subjudul">Semua pengumuman</Teks>
+      </Tautan>
     </>
   );
 }
@@ -78,4 +77,5 @@ const st = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   foto: { borderRadius: 22, overflow: 'hidden', borderWidth: 1, borderColor: W.garis, backgroundColor: W.kertas2 },
   tautan: { paddingVertical: 8 },
+  semua: { minHeight: 48, borderRadius: 14, borderWidth: 1.5, borderColor: W.tinta, alignItems: 'center', justifyContent: 'center' },
 });
