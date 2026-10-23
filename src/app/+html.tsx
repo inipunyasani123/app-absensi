@@ -70,6 +70,10 @@ function pisahkanSkrip(nodes: ReactNode) {
 export default function Root({ children }: PropsWithChildren) {
   const { headNodes, bodyNodes, htmlAttributes, bodyAttributes } = useServerDocumentContext();
   const { srcs, lain } = pisahkanSkrip(bodyNodes);
+  // Tanpa preload skrip: bundel baru diminta setelah bingkai pertama, jadi tidak bersaing dengan HTML, CSS, dan huruf.
+  const kepala = (Array.isArray(headNodes) ? headNodes : [headNodes]).filter(
+    (n) => !(isValidElement<{ rel?: string; as?: string }>(n) && n.type === 'link' && n.props.rel === 'preload' && n.props.as === 'script'),
+  );
   const pemuat = `(function(){var s=${JSON.stringify(srcs)},d=0;function m(){if(d)return;d=1;for(var i=0;i<s.length;i++){var e=document.createElement('script');e.src=s[i];e.async=false;document.body.appendChild(e)}}if(window.requestAnimationFrame)requestAnimationFrame(function(){setTimeout(m,0)});setTimeout(m,300)})();`;
   return (
     <html lang="id" {...htmlAttributes}>
@@ -96,7 +100,7 @@ export default function Root({ children }: PropsWithChildren) {
             __html: "try{var g=localStorage.getItem('gilir:demo:v1');if(g&&g.indexOf('\"kenal\":true')>-1)document.documentElement.classList.add('kenal')}catch(e){}",
           }}
         />
-        {headNodes}
+        {kepala}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
       <body {...bodyAttributes}>
