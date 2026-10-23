@@ -1,5 +1,5 @@
 import { useServerDocumentContext } from 'expo-router/html';
-import { type PropsWithChildren } from 'react';
+import { isValidElement, type PropsWithChildren, type ReactNode } from 'react';
 
 // Hanya berjalan di Node.js saat ekspor statis (web).
 const SITUS = 'https://app-absensi.pintuweb.id';
@@ -52,8 +52,25 @@ input:focus-visible,textarea:focus-visible{outline-offset:0}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 `;
 
+/**
+ * Skrip bundel dijalankan setelah bingkai pertama tergambar (unduhan tetap dimulai lewat preload di <head>),
+ * supaya HTML statis selalu tampil sebelum hidrasi. Urutan eksekusi dijaga dengan async=false.
+ */
+function pisahkanSkrip(nodes: ReactNode) {
+  const daftar = Array.isArray(nodes) ? nodes : [nodes];
+  const srcs: string[] = [];
+  const lain: ReactNode[] = [];
+  for (const n of daftar) {
+    if (isValidElement<{ src?: string }>(n) && n.type === 'script' && n.props.src) srcs.push(n.props.src);
+    else lain.push(n);
+  }
+  return { srcs, lain };
+}
+
 export default function Root({ children }: PropsWithChildren) {
   const { headNodes, bodyNodes, htmlAttributes, bodyAttributes } = useServerDocumentContext();
+  const { srcs, lain } = pisahkanSkrip(bodyNodes);
+  const pemuat = `(function(){var s=${JSON.stringify(srcs)},d=0;function m(){if(d)return;d=1;for(var i=0;i<s.length;i++){var e=document.createElement('script');e.src=s[i];e.async=false;document.body.appendChild(e)}}if(window.requestAnimationFrame)requestAnimationFrame(function(){setTimeout(m,0)});setTimeout(m,300)})();`;
   return (
     <html lang="id" {...htmlAttributes}>
       <head>
@@ -99,7 +116,8 @@ export default function Root({ children }: PropsWithChildren) {
             Pesan aplikasi seperti ini →
           </a>
         </aside>
-        {bodyNodes}
+        {lain}
+        <script dangerouslySetInnerHTML={{ __html: pemuat }} />
       </body>
     </html>
   );
