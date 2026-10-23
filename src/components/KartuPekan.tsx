@@ -63,7 +63,7 @@ const st = StyleSheet.create({
   baris: { flexDirection: 'row', alignItems: 'center', minHeight: 34, borderBottomWidth: 1, borderColor: W.garis, paddingHorizontal: 4 },
   barisKepala: { minHeight: 28 },
   barisHariIni: { backgroundColor: W.kunyitMuda },
-  th: { ...H.monoTebal, fontSize: 10.5, letterSpacing: 1, textTransform: 'uppercase', color: W.tinta2 },
+  th: { ...H.monoTebal, fontSize: 12, letterSpacing: 0.6, textTransform: 'uppercase', color: W.tinta2 },
   td: { ...H.isi, fontSize: 14, color: W.tinta },
   tebal: { ...H.isiTebal },
   redup: { ...H.isi, color: W.tinta2 },

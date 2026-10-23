@@ -17,6 +17,8 @@ type Nilai = Konteks & {
   putuskan: (id: string, status: StatusPengajuan, catatan?: string) => void;
   tandaiDibaca: (id: string) => void;
   aturUlang: () => void;
+  istirahat: (aksi: 'mulai' | 'selesai') => void;
+  setKenal: (v: boolean) => void;
   menunggu: Pengajuan[];
 };
 
@@ -42,6 +44,7 @@ function siapkanHari(s: Simpanan, t: Tgl, menit: number): Simpanan {
   }
   if (rec.masuk && !rec.pulang && menit >= sh.selesai + 60) {
     rec.pulang = { menit: sh.selesai + 4, bukti: ['etalase'], catatan: '', lokasi: 'otomatis', jarak: 31 };
+    rec.istirahat = rec.istirahat ?? { mulai: sh.mulai + 240, selesai: sh.mulai + 270 };
   }
   next.absen = { ...s.absen, [k]: rec };
   return next;
@@ -97,7 +100,9 @@ export function GilirProvider({ children }: { children: ReactNode }) {
   const absen = useCallback((jenis: 'masuk' | 'pulang', c: CatatanAbsen) => {
     setSimpanan((s) => {
       const k = kunci(sekarangWIB().tgl);
-      return { ...s, absen: { ...s.absen, [k]: { ...(s.absen[k] ?? {}), [jenis]: c } } };
+      const rec = { ...(s.absen[k] ?? {}), [jenis]: c };
+      if (jenis === 'pulang' && rec.istirahat && rec.istirahat.selesai == null) rec.istirahat = { ...rec.istirahat, selesai: c.menit };
+      return { ...s, absen: { ...s.absen, [k]: rec } };
     });
   }, []);
 
@@ -145,8 +150,21 @@ export function GilirProvider({ children }: { children: ReactNode }) {
 
   const aturUlang = useCallback(() => {
     const now = sekarangWIB();
-    setSimpanan(siapkanHari(SIMPANAN_KOSONG, now.tgl, now.menit));
+    setSimpanan((s) => ({ ...siapkanHari(SIMPANAN_KOSONG, now.tgl, now.menit), kenal: s.kenal }));
   }, []);
+
+  const istirahat = useCallback((aksi: 'mulai' | 'selesai') => {
+    setSimpanan((s) => {
+      const now = sekarangWIB();
+      const k = kunci(now.tgl);
+      const rec = { ...(s.absen[k] ?? {}) };
+      if (aksi === 'mulai') rec.istirahat = { mulai: now.menit };
+      else if (rec.istirahat) rec.istirahat = { ...rec.istirahat, selesai: Math.max(now.menit, rec.istirahat.mulai) };
+      return { ...s, absen: { ...s.absen, [k]: rec } };
+    });
+  }, []);
+
+  const setKenal = useCallback((v: boolean) => setSimpanan((s) => ({ ...s, kenal: v })), []);
 
   const menunggu = useMemo(
     () => pengajuan.filter((p) => p.status === 'menunggu' && p.orang !== ATASAN_ID),
@@ -168,6 +186,8 @@ export function GilirProvider({ children }: { children: ReactNode }) {
     putuskan,
     tandaiDibaca,
     aturUlang,
+    istirahat,
+    setKenal,
     menunggu,
   };
   return <Ctx.Provider value={nilai}>{children}</Ctx.Provider>;

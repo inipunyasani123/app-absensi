@@ -61,5 +61,5 @@ const st = StyleSheet.create({
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 56, borderRadius: 12 },
   ikonWadah: { width: 44, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   ikonAktif: { backgroundColor: W.kunyit },
-  label: { ...H.monoTebal, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase' },
+  label: { ...H.monoTebal, fontSize: 12.5, letterSpacing: 0.6, textTransform: 'uppercase' },
 });

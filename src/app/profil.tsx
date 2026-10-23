@@ -6,7 +6,7 @@ import { Logo } from '@/components/Logo';
 import { Kartu, Layar, Tautan, Teks, Tombol } from '@/components/ui';
 import { APLIKASI, ATURAN, CABANG, ORANG, PERUSAHAAN, SAYA_ID } from '@/lib/data';
 import { meta } from '@/lib/meta';
-import { Href } from '@/lib/nav';
+import { Href, router } from '@/lib/nav';
 import { useGilir } from '@/lib/store';
 import { H, W } from '@/theme';
 
@@ -89,6 +89,15 @@ export default function Profil() {
         <Teks v="kecil" warna={W.tinta2}>
           Absen, pengajuan, dan keputusan atasan yang kamu buat tersimpan di perangkat ini saja. Riwayat contoh selalu dibuat ulang relatif terhadap tanggal hari ini (WIB).
         </Teks>
+        <Tombol
+          varian="garis"
+          ikon="info"
+          label="Putar ulang pengenalan"
+          onPress={() => {
+            ctx.setKenal(false);
+            router.push('/');
+          }}
+        />
         {yakin ? (
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <Tombol varian="garis" label="Batal" onPress={() => setYakin(false)} style={{ flex: 1 }} />
@@ -144,13 +153,13 @@ const st = StyleSheet.create({
   idKartu: { backgroundColor: W.kertas, borderRadius: 24, borderWidth: 2, borderColor: W.tinta, padding: 16, gap: 14 },
   idAtas: { flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1.5, borderColor: W.tinta, paddingBottom: 10 },
   idPerusahaan: { ...H.display, fontSize: 20, color: W.tinta, letterSpacing: 0.8 },
-  idJenis: { ...H.monoTebal, fontSize: 10.5, color: W.stempel, letterSpacing: 1.6 },
+  idJenis: { ...H.monoTebal, fontSize: 12, color: W.stempel, letterSpacing: 1.6 },
   idTengah: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   idFoto: { borderRadius: 18, borderWidth: 2, borderColor: W.tinta, overflow: 'hidden' },
   idNama: { ...H.display, fontSize: 30, lineHeight: 32, color: W.tinta, textTransform: 'uppercase' },
   idJabatan: { ...H.isiSedang, fontSize: 14, color: W.tinta2 },
   idBawah: { flexDirection: 'row', gap: 8 },
-  idK: { ...H.monoTebal, fontSize: 10, letterSpacing: 1.2, color: W.tinta2, textTransform: 'uppercase' },
+  idK: { ...H.monoTebal, fontSize: 12, letterSpacing: 1.2, color: W.tinta2, textTransform: 'uppercase' },
   idV: { ...H.isiTebal, fontSize: 14, color: W.tinta },
   batang: { flexDirection: 'row', gap: 0, alignSelf: 'flex-start', marginTop: 2 },
   info: { paddingVertical: 8, borderBottomWidth: 1, borderColor: W.garis, gap: 2 },

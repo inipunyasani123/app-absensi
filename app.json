@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#EEE5D0",
+    "backgroundColor": "#EFDCA6",
     "primaryColor": "#1E1A15",
     "description": "Demo aplikasi absensi & HR karyawan buatan PintuWeb. Usaha dan datanya rekaan.",
     "ios": {
@@ -17,7 +17,7 @@
     "android": {
       "package": "id.pintuweb.demo.gilir",
       "adaptiveIcon": {
-        "backgroundColor": "#EEE5D0",
+        "backgroundColor": "#EFDCA6",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -31,7 +31,7 @@
       "shortName": "Gilir",
       "lang": "id",
       "themeColor": "#1E1A15",
-      "backgroundColor": "#EEE5D0"
+      "backgroundColor": "#EFDCA6"
     },
     "plugins": [
       ["expo-router", { "origin": "https://app-absensi.pintuweb.id" }],

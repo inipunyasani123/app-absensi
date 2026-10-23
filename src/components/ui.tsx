@@ -1,10 +1,10 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import {
   Platform, Pressable, PressableProps, ScrollView, StyleProp, StyleSheet, Text, TextProps, TextStyle, View, ViewStyle,
 } from 'react-native';
 import { Href, Link, router } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { H, R, W } from '@/theme';
+import { H, R, TABULAR, W } from '@/theme';
 import { Ikon, NamaIkon } from './Ikon';
 
 const web = Platform.OS === 'web';
@@ -12,16 +12,17 @@ const web = Platform.OS === 'web';
 type Varian = 'raksasa' | 'display' | 'judul' | 'subjudul' | 'isi' | 'kecil' | 'label' | 'mono' | 'monoKecil' | 'angka';
 
 const gayaTeks: Record<Varian, TextStyle> = {
-  raksasa: { ...H.display, fontSize: 64, lineHeight: 62, letterSpacing: 0.5, textTransform: 'uppercase' },
-  display: { ...H.display, fontSize: 34, lineHeight: 36, letterSpacing: 0.4, textTransform: 'uppercase' },
-  judul: { ...H.display, fontSize: 24, lineHeight: 27, letterSpacing: 0.3, textTransform: 'uppercase' },
+  // Angka besar tanpa kapital paksa (supaya "Rp" tidak menjadi "RP").
+  raksasa: { ...H.display, fontSize: 70, lineHeight: 68, letterSpacing: 0.5, fontVariant: TABULAR },
+  display: { ...H.display, fontSize: 38, lineHeight: 39, letterSpacing: 0.6, textTransform: 'uppercase' },
+  judul: { ...H.display, fontSize: 27, lineHeight: 29, letterSpacing: 0.5, textTransform: 'uppercase' },
   subjudul: { ...H.isiTebal, fontSize: 16, lineHeight: 21 },
   isi: { ...H.isi, fontSize: 15, lineHeight: 22 },
   kecil: { ...H.isi, fontSize: 13, lineHeight: 18 },
-  label: { ...H.monoTebal, fontSize: 11.5, lineHeight: 15, letterSpacing: 1.1, textTransform: 'uppercase' },
+  label: { ...H.monoTebal, fontSize: 12, lineHeight: 16, letterSpacing: 1, textTransform: 'uppercase' },
   mono: { ...H.mono, fontSize: 14, lineHeight: 19 },
   monoKecil: { ...H.mono, fontSize: 12, lineHeight: 16 },
-  angka: { ...H.display, fontSize: 40, lineHeight: 40 },
+  angka: { ...H.display, fontSize: 44, lineHeight: 44, fontVariant: TABULAR },
 };
 
 type TeksProps = TextProps & {
@@ -161,14 +162,17 @@ type LayarProps = {
   children: ReactNode;
   tab?: boolean;
   kecil?: boolean;
+  lapisan?: ReactNode; // lembar bawah/snackbar yang menutupi layar
 };
 
 /** Kerangka layar: kepala bergaris ganda ala buku besar + isi yang bisa digulir. */
-export function Layar({ judul, sub, kembali, kanan, children, tab, kecil }: LayarProps) {
+export function Layar({ judul, sub, kembali, kanan, children, tab, kecil, lapisan }: LayarProps) {
   const inset = useSafeAreaInsets();
+  // Kepala memadat setelah digulir (dengan histeresis agar tidak berkedip di ambang).
+  const [padat, setPadat] = useState(false);
   return (
     <View style={s.layar} {...(web ? ({ role: 'main' } as object) : {})}>
-      <View style={[s.kepala, { paddingTop: Math.max(inset.top, 12) + 6 }]}>
+      <View style={[s.kepala, { paddingTop: Math.max(inset.top, 12) + (padat ? 0 : 6) }, padat && s.kepalaPadat]}>
         <View style={s.kepalaBaris}>
           {kembali ? (
             <Pressable
@@ -184,12 +188,14 @@ export function Layar({ judul, sub, kembali, kanan, children, tab, kecil }: Laya
             </Pressable>
           ) : null}
           <View style={{ flex: 1, minWidth: 0 }}>
-            {sub ? <Teks v="label" warna={W.tinta2}>{sub}</Teks> : null}
-            <Teks v={kecil ? 'judul' : 'display'} tingkat={1} numberOfLines={kecil ? undefined : 2}>{judul}</Teks>
+            {sub && !padat ? <Teks v="label" warna={W.tinta2}>{sub}</Teks> : null}
+            <Teks v={kecil || padat ? 'judul' : 'display'} tingkat={1} numberOfLines={padat ? 1 : kecil ? undefined : 2}>
+              {judul}
+            </Teks>
           </View>
           {kanan}
         </View>
-        <View style={s.garisGanda} aria-hidden>
+        <View style={[s.garisGanda, padat && { marginTop: 6 }]} aria-hidden>
           <View style={{ height: 2, backgroundColor: W.tinta }} />
           <View style={{ height: 3 }} />
           <View style={{ height: 1, backgroundColor: W.tinta }} />
@@ -199,9 +205,16 @@ export function Layar({ judul, sub, kembali, kanan, children, tab, kecil }: Laya
         style={{ flex: 1 }}
         contentContainerStyle={[s.isi, { paddingBottom: tab ? 24 : Math.max(inset.bottom, 16) + 24 }]}
         keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={32}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          if (!padat && y > 56) setPadat(true);
+          else if (padat && y < 8) setPadat(false);
+        }}
       >
         {children}
       </ScrollView>
+      {lapisan}
     </View>
   );
 }
@@ -255,6 +268,7 @@ export function Baris({ children, gap = 10, style }: { children: ReactNode; gap?
 export const s = StyleSheet.create({
   layar: { flex: 1, backgroundColor: W.manila },
   kepala: { paddingHorizontal: 18, paddingBottom: 10, backgroundColor: W.manila },
+  kepalaPadat: { paddingBottom: 6 },
   kepalaBaris: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
   garisGanda: { marginTop: 10 },
   kembali: {
@@ -271,14 +285,14 @@ export const s = StyleSheet.create({
   },
   tombolBesar: { minHeight: 60, borderRadius: 18 },
   tombolTeks: { ...H.isiTebal, fontSize: 15 },
-  tombolTeksBesar: { ...H.display, fontSize: 24, letterSpacing: 0.6, textTransform: 'uppercase' },
+  tombolTeksBesar: { ...H.display, fontSize: 28, letterSpacing: 1, textTransform: 'uppercase' },
   stempel: { borderWidth: 2.5, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', alignItems: 'center' },
   stempelKecil: { borderWidth: 2, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   stempelTeks: { ...H.monoTebal, fontSize: 15, letterSpacing: 1.5, textTransform: 'uppercase' },
-  stempelTeksKecil: { ...H.monoTebal, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase' },
-  stempelSub: { ...H.mono, fontSize: 11, letterSpacing: 0.5 },
+  stempelTeksKecil: { ...H.monoTebal, fontSize: 12, letterSpacing: 1.1, textTransform: 'uppercase' },
+  stempelSub: { ...H.mono, fontSize: 12, letterSpacing: 0.4 },
   chip: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start' },
-  chipTeks: { ...H.monoTebal, fontSize: 11.5, letterSpacing: 0.6, textTransform: 'uppercase' },
+  chipTeks: { ...H.monoTebal, fontSize: 12, letterSpacing: 0.6, textTransform: 'uppercase' },
   segmen: { flexDirection: 'row', backgroundColor: W.kertas2, borderRadius: 14, padding: 4, gap: 4, borderWidth: 1, borderColor: W.garis },
   segmenItem: { flex: 1, minHeight: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   segmenAktif: { backgroundColor: W.jelaga },

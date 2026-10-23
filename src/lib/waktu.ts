@@ -90,6 +90,16 @@ export function durasi(menit: number) {
   return `${s} menit`;
 }
 
+/** "4 j 13 m", "45 m" — versi ringkas untuk baris sempit. */
+export function durasiPendek(menit: number) {
+  const m = Math.max(0, Math.round(menit));
+  const j = Math.floor(m / 60);
+  const s = m % 60;
+  if (j && s) return `${j} j ${s} m`;
+  if (j) return `${j} j`;
+  return `${s} m`;
+}
+
 /** 90 → "1,5" */
 export function jamDesimal(menit: number) {
   const v = Math.round((menit / 60) * 10) / 10;

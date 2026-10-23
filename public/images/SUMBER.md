@@ -17,6 +17,6 @@ Semua nama usaha, karyawan, dan angka di demo ini rekaan.
 
 ## Huruf (SIL Open Font License 1.1)
 
-- Big Shoulders Display — Patric King / XYZ Type
+- Stint Ultra Condensed — Astigmatic (AOETI)
 - Hanken Grotesk — Alfredo Marco Pradil / Hanken Design Co.
 - Spline Sans Mono — Eben Sorkin, Mirko Velimirović

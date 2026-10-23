@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ikon, NamaIkon } from '@/components/Ikon';
 import { KartuPengajuan } from '@/components/KartuPengajuan';
+import { Kosong } from '@/components/Kosong';
 import { Kartu, Kerangka, Layar, Segmen, Tautan, Teks } from '@/components/ui';
 import { ATURAN, JenisPengajuan, NAMA_JENIS, ORANG, SAYA_ID, StatusPengajuan } from '@/lib/data';
 import { meta } from '@/lib/meta';
@@ -19,6 +20,7 @@ const JENIS: { j: JenisPengajuan; ikon: NamaIkon; ket: string }[] = [
   { j: 'izin', ikon: 'catatan', ket: 'keperluan pribadi' },
   { j: 'sakit', ikon: 'tameng', ket: 'surat dokter bila perlu' },
   { j: 'lembur', ikon: 'jam', ket: 'setelah jam shift' },
+  { j: 'tukar', ikon: 'ulang', ket: 'sepakat dulu dengan rekan' },
 ];
 
 export default function HalamanPengajuan() {
@@ -103,14 +105,23 @@ function Isi() {
           { nilai: 'ditolak', label: 'Ditolak' },
         ]}
       />
-      <View style={{ gap: 10 }} {...({ role: 'list' } as object)}>
-        {tampil.length === 0 && <Teks v="kecil" warna={W.tinta2}>Belum ada pengajuan dengan status ini.</Teks>}
-        {tampil.map((p) => (
-          <View key={p.id} {...({ role: 'listitem' } as object)}>
-            <KartuPengajuan p={p} />
-          </View>
-        ))}
-      </View>
+      {tampil.length === 0 && (
+        <Kosong
+          jenis="amplop"
+          judul={filter === 'menunggu' ? 'Tidak ada yang menunggu' : filter === 'ditolak' ? 'Belum pernah ditolak' : 'Belum ada pengajuan di sini'}
+          teks={filter === 'menunggu' ? 'Semua pengajuanmu sudah diputuskan kepala gerai.' : 'Pengajuan yang kamu kirim akan tercatat di sini lengkap dengan statusnya.'}
+          aksi={{ label: 'Ajukan cuti', href: '/pengajuan/baru?jenis=cuti' }}
+        />
+      )}
+      {tampil.length > 0 && (
+        <View style={{ gap: 10 }} {...({ role: 'list' } as object)}>
+          {tampil.map((p) => (
+            <View key={p.id} {...({ role: 'listitem' } as object)}>
+              <KartuPengajuan p={p} />
+            </View>
+          ))}
+        </View>
+      )}
 
       <Kartu nada="polos" style={{ gap: 4 }}>
         <Teks v="subjudul">Aturan singkat</Teks>

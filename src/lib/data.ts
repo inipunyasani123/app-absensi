@@ -1,5 +1,5 @@
 // Semua nama usaha, orang, dan angka di berkas ini rekaan untuk keperluan demo.
-import { acak, awalPekan, nomorHari, Tgl, hariDalamPekan, tambahHari, NAMA_BULAN } from './waktu';
+import { acak, awalPekan, nomorHari, Tgl, hariDalamPekan, jumlahHari, tambahHari, NAMA_BULAN } from './waktu';
 
 export const APLIKASI = {
   nama: 'Gilir',
@@ -79,7 +79,7 @@ export const ORANG: Record<string, Orang> = {
   sekar: {
     id: 'sekar', nama: 'Sekar Wulandari', panggilan: 'Sekar', jabatan: 'Staf Gerai · Kasir & Etalase', cabang: 'kota',
     nik: 'LP-0217', bergabung: 'Maret 2023', geser: 0, libur: 0,
-    rupa: { kulit: '#C98E62', rambut: '#2B2118', gaya: 'kerudung', baju: '#B33A1E', latar: '#EBC24A' },
+    rupa: { kulit: '#C98E62', rambut: '#2B2118', gaya: 'kerudung', baju: '#A6351B', latar: '#EBC24A' },
   },
   bayu: {
     id: 'bayu', nama: 'Bayu Anggara', panggilan: 'Bayu', jabatan: 'Kepala Gerai Kota', cabang: 'kota',
@@ -122,8 +122,10 @@ export function shiftTerjadwal(orangId: string, t: Tgl): KodeShift {
   const o = ORANG[orangId];
   const w = pekanKe(t);
   const hariLibur = (((w * 2 + o.libur) % 7) + 7) % 7;
-  if (hariDalamPekan(t) === hariLibur) return 'libur';
-  return ROTASI[(((w + o.geser) % 3) + 3) % 3];
+  const d = hariDalamPekan(t);
+  if (d === hariLibur) return 'libur';
+  // Separuh awal pekan (Sen–Rab) satu jenis shift, sisanya jenis berikutnya: tiap pekan memuat dua warna shift.
+  return ROTASI[(((w + o.geser + (d >= 3 ? 1 : 0)) % 3) + 3) % 3];
 }
 
 // ——— Pengumuman HR ———
@@ -192,6 +194,30 @@ export function daftarPengumuman(hariIni: Tgl, bulanLaluNama: string): Pengumuma
       ],
     },
     {
+      id: 'stok-opname',
+      judul: 'Stok opname akhir bulan',
+      ringkas: `Hitung stok etalase & gudang kecil tanggal ${jumlahHari(hariIni.y, hariIni.m)} setelah tutup gerai.`,
+      kategori: 'Operasional',
+      tanggal: tambahHari(hariIni, -2),
+      penting: true,
+      isi: [
+        `Stok opname dilakukan ${jumlahHari(hariIni.y, hariIni.m)} ${NAMA_BULAN[hariIni.m - 1]} setelah gerai tutup. Setiap gerai menghitung roti, kue kering, kemasan, dan bahan isian.`,
+        'Yang bertugas shift terakhir hari itu ikut menghitung dan mengajukan lembur lewat aplikasi (jenis Lembur, bukti nota atau daftar stok).',
+        'Selisih lebih dari 2% dilaporkan ke kepala gerai di hari yang sama.',
+      ],
+    },
+    {
+      id: 'cuti-akhir-tahun',
+      judul: 'Cuti akhir tahun diatur bergiliran',
+      ringkas: 'Gerai tetap buka saat libur akhir tahun; cuti diatur bergiliran.',
+      kategori: 'Operasional',
+      tanggal: tambahHari(hariIni, -8),
+      isi: [
+        'Gerai Kota, Ngunut, dan Campurdarat tetap buka di libur Natal dan tahun baru, jadi cuti akhir tahun diatur bergiliran per gerai.',
+        'Ajukan cuti tahunan untuk periode 20 Desember sampai 5 Januari paling lambat tiga pekan sebelumnya. Kepala gerai memprioritaskan yang belum mengambil cuti tahun ini.',
+      ],
+    },
+    {
       id: 'makan-bersama',
       judul: 'Makan bersama akhir bulan',
       ringkas: 'Setelah tutup gerai, di Gerai Kota. Bawa cerita, bukan kado.',
@@ -211,12 +237,14 @@ export const PENGUMUMAN_META: Record<string, [string, string]> = {
   'celemek-baru': ['Celemek baru bisa diambil mulai Senin', 'Setiap karyawan mendapat dua celemek baru, diambil di gudang Dapur Pusat dengan menyebutkan NIK.'],
   'slip-gaji-terbit': ['Slip gaji bulan lalu sudah terbit', 'Gaji bulan lalu sudah ditransfer. Cek rincian lembur dan tunjangan kehadiran di tab Gaji.'],
   'toleransi-telat': ['Aturan toleransi telat: 5 menit', 'Absen dibuka 90 menit sebelum shift, toleransi telat 5 menit, dan syarat tunjangan kehadiran penuh.'],
+  'stok-opname': ['Stok opname akhir bulan', 'Stok opname tiap akhir bulan setelah gerai tutup: roti, kue kering, kemasan, dan bahan isian; lembur diajukan lewat aplikasi.'],
+  'cuti-akhir-tahun': ['Cuti akhir tahun diatur bergiliran', 'Gerai tetap buka saat libur akhir tahun, jadi cuti 20 Desember–5 Januari diatur bergiliran. Ajukan paling lambat tiga pekan sebelumnya.'],
   'makan-bersama': ['Makan bersama akhir bulan', 'Makan bersama tim gerai setelah jam tutup pada Minggu terakhir bulan ini di Gerai Kota.'],
 };
 
 // ——— Pengajuan ———
 
-export type JenisPengajuan = 'cuti' | 'izin' | 'sakit' | 'lembur';
+export type JenisPengajuan = 'cuti' | 'izin' | 'sakit' | 'lembur' | 'tukar';
 export type StatusPengajuan = 'menunggu' | 'disetujui' | 'ditolak';
 
 export type Pengajuan = {
@@ -230,6 +258,7 @@ export type Pengajuan = {
   jamMulai?: number;
   alasan: string;
   bukti?: 'surat-dokter' | 'catatan' | 'foto-nota';
+  rekan?: string; // tukar shift: rekan yang bertukar
   dibuat: string; // kunci tanggal
   status: StatusPengajuan;
   catatanAtasan?: string;
@@ -241,6 +270,7 @@ export const NAMA_JENIS: Record<JenisPengajuan, string> = {
   izin: 'Izin',
   sakit: 'Sakit',
   lembur: 'Lembur',
+  tukar: 'Tukar shift',
 };
 
 /** Data contoh relatif terhadap hari ini. Keputusan atasan atasnya disimpan terpisah per id. */
@@ -262,6 +292,10 @@ export function pengajuanContoh(hariIni: Tgl, k: (t: Tgl) => string): Pengajuan[
     {
       id: 'c-sekar-lembur', orang: 'sekar', jenis: 'lembur', mulai: d(-4), selesai: d(-4), lemburMenit: 120, jamMulai: 21 * 60,
       alasan: 'Stok opname akhir pekan bersama Fikri, hitung ulang etalase dan gudang kecil.', bukti: 'catatan', dibuat: d(-3), status: 'menunggu', contoh: true,
+    },
+    {
+      id: 'c-dimas-tukar', orang: 'dimas', jenis: 'tukar', mulai: d(2), selesai: d(2), rekan: 'wulan',
+      alasan: 'Ada kuliah sore, Wulan bersedia bertukar shift.', bukti: 'catatan', dibuat: d(0), status: 'menunggu', contoh: true,
     },
     {
       id: 'c-wulan-cuti', orang: 'wulan', jenis: 'cuti', mulai: d(10), selesai: d(12), hari: 3,

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ikon } from '@/components/Ikon';
 import { Avatar } from '@/components/Ilustrasi';
-import { Kartu, Kerangka, Layar, Stempel, Teks } from '@/components/ui';
+import { Kartu, Kerangka, Layar, Stempel, Teks, Tombol } from '@/components/ui';
+import { router } from '@/lib/nav';
 import { CABANG, KodeShift, ORANG, SAYA_ID, SHIFT, TIM_KOTA } from '@/lib/data';
 import { meta } from '@/lib/meta';
 import { hari, shiftHari } from '@/lib/riwayat';
 import { useGilir } from '@/lib/store';
-import { HARI_PENDEK, NAMA_HARI, Tgl, awalPekan, hariDalamPekan, jam, kunci, rentang, sama, tambahHari } from '@/lib/waktu';
+import { HARI_PENDEK, NAMA_HARI, Tgl, awalPekan, hariDalamPekan, jam, kunci, rentang, sama, tambahHari, tanggalPendek } from '@/lib/waktu';
 import { H, W, WARNA_SHIFT } from '@/theme';
 
 export function generateMetadata() {
@@ -32,7 +33,7 @@ function Isi() {
   const namaPekan = geser === 0 ? 'Pekan ini' : geser === 1 ? 'Pekan depan' : geser === -1 ? 'Pekan lalu' : geser > 0 ? `${geser} pekan lagi` : `${-geser} pekan lalu`;
   const dipilih = hariList.find((t) => kunci(t) === pilih) ?? hariList[0];
   const jamKerja = hariList.reduce((s, t) => {
-    const sh = shiftHari(SAYA_ID, t, ctx.simpanan);
+    const sh = shiftHari(SAYA_ID, t, ctx.simpanan, ctx.pengajuan);
     return s + (sh === 'libur' ? 0 : (SHIFT[sh].selesai - SHIFT[sh].mulai) / 60);
   }, 0);
 
@@ -93,11 +94,17 @@ function Isi() {
 
       <Rekan t={dipilih} />
 
-      <Kartu nada="polos" style={{ gap: 6 }}>
-        <Teks v="subjudul">Mau tukar shift?</Teks>
+      <Kartu nada="polos" style={{ gap: 8 }} label="Tukar shift">
+        <Teks v="subjudul">Mau tukar shift {tanggalPendek(dipilih)}?</Teks>
         <Teks v="kecil" warna={W.tinta2}>
-          Bicarakan dengan rekan dulu, lalu minta {ORANG.bayu.panggilan} (kepala gerai) mengubah jadwal. Tukar tanpa pemberitahuan tercatat sebagai izin yang ditolak.
+          Sepakati dulu dengan rekan, lalu ajukan di sini. Setelah {ORANG.bayu.panggilan} (kepala gerai) menyetujui, jadwal kalian berdua langsung bertukar.
         </Teks>
+        <Tombol
+          varian="utama"
+          ikon="ulang"
+          label="Ajukan tukar shift"
+          onPress={() => router.push(`/pengajuan/baru?jenis=tukar&tanggal=${kunci(dipilih)}`)}
+        />
       </Kartu>
     </>
   );
@@ -155,8 +162,8 @@ function BarisHari({ t, i, aktif, onPilih, hariIni }: { t: Tgl; i: number; aktif
 
 function Rekan({ t }: { t: Tgl }) {
   const ctx = useGilir();
-  const shSaya = shiftHari(SAYA_ID, t, ctx.simpanan);
-  const daftar = TIM_KOTA.filter((id) => id !== SAYA_ID).map((id) => ({ id, s: shiftHari(id, t, ctx.simpanan), h: hari(id, t, ctx) }));
+  const shSaya = shiftHari(SAYA_ID, t, ctx.simpanan, ctx.pengajuan);
+  const daftar = TIM_KOTA.filter((id) => id !== SAYA_ID).map((id) => ({ id, s: shiftHari(id, t, ctx.simpanan, ctx.pengajuan), h: hari(id, t, ctx) }));
   const serupa = daftar.filter((d) => d.s === shSaya && shSaya !== 'libur');
   const lain = daftar.filter((d) => !(d.s === shSaya && shSaya !== 'libur'));
   return (
@@ -194,15 +201,15 @@ const st = StyleSheet.create({
   legenda: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   legendaItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: W.kertas, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: W.garis },
   legendaWarna: { width: 12, height: 12, borderRadius: 3, borderWidth: 1, borderColor: W.tinta },
-  legendaTeks: { ...H.mono, fontSize: 11.5, color: W.tinta },
+  legendaTeks: { ...H.mono, fontSize: 12, color: W.tinta },
   skala: { flexDirection: 'row', height: 14 },
   skalaBar: { flex: 1, position: 'relative' },
-  skalaTeks: { position: 'absolute', ...H.mono, fontSize: 10, color: W.tinta2, transform: [{ translateX: -6 }] },
+  skalaTeks: { position: 'absolute', ...H.mono, fontSize: 12, color: W.tinta2, transform: [{ translateX: -6 }] },
   baris: { flexDirection: 'row', gap: 10, alignItems: 'center', paddingVertical: 8, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1.5, borderColor: 'transparent' },
   barisAktif: { borderColor: W.tinta, backgroundColor: W.kertas2 },
   barisHariIni: { backgroundColor: W.kunyitMuda },
   tanggal: { width: 46, alignItems: 'center' },
-  hari: { ...H.monoTebal, fontSize: 11, letterSpacing: 1, color: W.tinta2, textTransform: 'uppercase' },
+  hari: { ...H.monoTebal, fontSize: 12, letterSpacing: 1, color: W.tinta2, textTransform: 'uppercase' },
   angka: { ...H.display, fontSize: 28, lineHeight: 30, color: W.tinta },
   bar: { height: 16, borderRadius: 5, backgroundColor: W.kertas2, borderWidth: 1, borderColor: W.garis, overflow: 'hidden', position: 'relative' },
   bantu: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: W.garis },
@@ -210,5 +217,5 @@ const st = StyleSheet.create({
   ket: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   ketTeks: { ...H.isiTebal, fontSize: 13.5, color: W.tinta },
   rekan: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  rekanShift: { ...H.monoTebal, fontSize: 11.5, color: W.tinta, backgroundColor: W.kertas2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden', textTransform: 'uppercase' },
+  rekanShift: { ...H.monoTebal, fontSize: 12, color: W.tinta, backgroundColor: W.kertas2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden', textTransform: 'uppercase' },
 });

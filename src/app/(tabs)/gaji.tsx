@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { Kartu, Kerangka, Layar, Segmen, Teks } from '@/components/ui';
+import { Gerigi } from '@/components/Gerigi';
+import { Kartu, Kerangka, Layar, Segmen, Tautan, Teks } from '@/components/ui';
+import { Ikon } from '@/components/Ikon';
 import { CABANG, ORANG, PERUSAHAAN, SAYA_ID } from '@/lib/data';
 import { Baris, UPAH, hitungSlip } from '@/lib/gaji';
 import { meta } from '@/lib/meta';
@@ -92,6 +93,12 @@ function Isi() {
         <Teks v="kecil" warna={W.tinta2}>
           Ditanggung perusahaan di luar slip: BPJS Kesehatan 4%, JHT 3,7%, JP 2%, JKK 0,24%, JKM 0,3%.
         </Teks>
+        <Tautan href="/rekap" style={st.tautanRekap}>
+          <Teks v="subjudul" style={{ flex: 1, fontSize: 15 }}>
+            Lihat {String(slip.lemburJam).replace('.', ',')} jam lembur & {slip.hadir} hari hadir di Rekap
+          </Teks>
+          <Ikon nama="kanan" />
+        </Tautan>
       </Kartu>
       <Teks v="kecil" warna={W.tinta2} style={{ textAlign: 'center' }}>
         Slip contoh dengan angka rekaan untuk demo. Rumus disesuaikan dengan aturan perusahaan klien.
@@ -139,32 +146,17 @@ function Total({ label, nilai }: { label: string; nilai: number }) {
   );
 }
 
-function Gerigi({ bawah }: { bawah?: boolean }) {
-  const gigi = 22;
-  let d = bawah ? 'M0 0 ' : 'M0 12 ';
-  for (let i = 0; i < gigi; i++) {
-    const x = (i * 100) / gigi;
-    const t = x + 100 / gigi / 2;
-    d += bawah ? `L${t} 12 L${x + 100 / gigi} 0 ` : `L${t} 0 L${x + 100 / gigi} 12 `;
-  }
-  d += bawah ? 'L100 0 Z' : 'L100 12 Z';
-  return (
-    <Svg width="100%" height={12} viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden focusable={false}>
-      <Path d={d} fill="#FFFDF8" />
-    </Svg>
-  );
-}
-
 const st = StyleSheet.create({
+  tautanRekap: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, borderTopWidth: 1, borderColor: W.garis, paddingTop: 8, marginTop: 4 },
   hero: { backgroundColor: W.jelaga, borderRadius: 22, padding: 16, gap: 6 },
   heroBaris: { flexDirection: 'row', gap: 8, marginTop: 6 },
   mini: { flex: 1, backgroundColor: '#2E2820', borderRadius: 12, padding: 8 },
-  miniLabel: { ...H.monoTebal, fontSize: 10.5, letterSpacing: 1, color: W.diJelaga2, textTransform: 'uppercase' },
+  miniLabel: { ...H.monoTebal, fontSize: 12, letterSpacing: 0.8, color: W.diJelaga2, textTransform: 'uppercase' },
   miniNilai: { ...H.display, fontSize: 20, color: W.diJelaga },
   struk: { marginHorizontal: 4 },
-  strukIsi: { backgroundColor: '#FFFDF8', paddingHorizontal: 16, paddingVertical: 8, gap: 2 },
+  strukIsi: { backgroundColor: '#FFFDF6', paddingHorizontal: 16, paddingVertical: 8, gap: 2 },
   strukJudul: { ...H.display, fontSize: 24, color: W.tinta, textAlign: 'center', letterSpacing: 1 },
-  strukSub: { ...H.monoTebal, fontSize: 11, color: W.tinta2, textAlign: 'center', letterSpacing: 0.8 },
+  strukSub: { ...H.monoTebal, fontSize: 12, color: W.tinta2, textAlign: 'center', letterSpacing: 0.8 },
   garisPutus: { borderBottomWidth: 1.5, borderStyle: 'dashed', borderColor: W.garisTegas, marginVertical: 10 },
   info: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2, gap: 12 },
   infoK: { ...H.mono, fontSize: 12.5, color: W.tinta2 },
@@ -172,7 +164,7 @@ const st = StyleSheet.create({
   bagian: { marginTop: 14, marginBottom: 4, fontSize: 20 },
   baris: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6, borderBottomWidth: 1, borderColor: '#EFE7D6', gap: 10 },
   barisLabel: { ...H.isi, fontSize: 14, color: W.tinta },
-  barisCatatan: { ...H.mono, fontSize: 11, color: W.tinta2, marginTop: 1 },
+  barisCatatan: { ...H.mono, fontSize: 12, color: W.tinta2, marginTop: 1 },
   barisNilai: { ...H.mono, fontSize: 13.5, color: W.tinta, textAlign: 'right' },
   total: { borderBottomWidth: 0, borderTopWidth: 1.5, borderTopColor: W.tinta, marginTop: 2 },
   diterima: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingVertical: 10, borderTopWidth: 2, borderBottomWidth: 2, borderColor: W.tinta },

@@ -18,13 +18,14 @@ export type Keputusan = { status: StatusPengajuan; catatan?: string; waktu: stri
 
 export type Simpanan = {
   versi: 1;
-  absen: Record<string, { masuk?: CatatanAbsen; pulang?: CatatanAbsen }>;
+  absen: Record<string, { masuk?: CatatanAbsen; pulang?: CatatanAbsen; istirahat?: { mulai: number; selesai?: number } }>;
   disiapkan: Record<string, true>;
   override: Record<string, KodeShift>;
   pengajuan: Pengajuan[];
   keputusan: Record<string, Keputusan>;
   dibaca: string[];
   lokasi?: { kunci: string; jarak: number; sumber: 'perangkat' | 'simulasi'; akurasi?: number };
+  kenal?: boolean; // pengenalan singkat sudah dilihat
 };
 
 export const SIMPANAN_KOSONG: Simpanan = {
@@ -81,6 +82,8 @@ export function susunPengajuan(simpanan: Simpanan, hariIni: Tgl): Pengajuan[] {
     if (q.jenis === 'lembur') {
       const s = shiftTerjadwal(q.orang, mulaiT);
       q.jamMulai = SHIFT[s].selesai;
+    } else if (q.jenis === 'tukar') {
+      q.hari = 1;
     } else {
       q.hari = hitungHariKerja(q.orang, q.mulai, q.selesai);
     }
@@ -97,17 +100,31 @@ export function susunPengajuan(simpanan: Simpanan, hariIni: Tgl): Pengajuan[] {
 function cariPengajuan(list: Pengajuan[], orang: string, k: string, jenis?: 'cuti-izin-sakit' | 'lembur') {
   return list.find((p) => {
     if (p.orang !== orang || p.status === 'ditolak') return false;
+    if (p.jenis === 'tukar') return false;
     if (jenis === 'lembur' ? p.jenis !== 'lembur' : p.jenis === 'lembur') return false;
     return p.mulai <= k && k <= p.selesai;
   });
 }
 
-export function shiftHari(orang: string, t: Tgl, simpanan: Simpanan): KodeShift {
+function shiftDasar(orang: string, t: Tgl, simpanan: Simpanan): KodeShift {
   if (orang === SAYA_ID) {
     const o = simpanan.override[kunci(t)];
     if (o) return o;
   }
   return shiftTerjadwal(orang, t);
+}
+
+/** Shift efektif: jadwal + simulasi hari kerja + tukar shift yang sudah disetujui. */
+export function shiftHari(orang: string, t: Tgl, simpanan: Simpanan, pengajuan: Pengajuan[] = []): KodeShift {
+  const k = kunci(t);
+  const tukar = pengajuan.find(
+    (p) => p.jenis === 'tukar' && p.status === 'disetujui' && p.mulai === k && (p.orang === orang || p.rekan === orang),
+  );
+  if (tukar && tukar.rekan) {
+    const lawan = tukar.orang === orang ? tukar.rekan : tukar.orang;
+    return shiftDasar(lawan, t, simpanan);
+  }
+  return shiftDasar(orang, t, simpanan);
 }
 
 /** Status masuk dibanding jadwal. */
@@ -121,7 +138,7 @@ export function nilaiMasuk(shift: KodeShift, menit: number): { status: 'hadir' |
 
 export function hari(orang: string, t: Tgl, ctx: Konteks): Hari {
   const k = kunci(t);
-  const shift = shiftHari(orang, t, ctx.simpanan);
+  const shift = shiftHari(orang, t, ctx.simpanan, ctx.pengajuan);
   const dasar: Hari = { tgl: t, kunci: k, shift, status: 'nanti' };
   const beda = banding(t, ctx.hariIni);
   const cuti = cariPengajuan(ctx.pengajuan, orang, k, 'cuti-izin-sakit');
